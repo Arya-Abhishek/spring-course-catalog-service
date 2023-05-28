@@ -5,7 +5,9 @@ import com.kotlinspring.service.CourseService
 import com.kotlinspring.util.courseDTO
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import mu.KLogging
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -21,6 +23,8 @@ class CourseControllerUnitTest {
 
     @MockkBean
     lateinit var courseServiceMock: CourseService
+
+    companion object: KLogging()
 
     @Test
     fun addCourse() {
@@ -41,6 +45,27 @@ class CourseControllerUnitTest {
         Assertions.assertTrue {
             savedCourseDTO!!.id != null
         }
+    }
+
+    @Test
+    fun addCourse_validation() {
+        val courseDTO = CourseDTO(null, "", "")
+
+        every { courseServiceMock.addCourse(any()) } returns courseDTO(id = 1)
+
+        val response =  webTestClient
+            .post()
+            .uri("/v1/courses")
+            .bodyValue(courseDTO)
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody(String::class.java)
+            .returnResult()
+            .responseBody
+
+        logger.info { "response: $response" }
+        assertEquals("courseDTO.category must not be blank, courseDTO.name must not be blank", response)
+
     }
 
     @Test
