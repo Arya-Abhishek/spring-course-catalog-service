@@ -27,4 +27,14 @@ class CourseService(val courseRepository: CourseRepository) {
         logger.info { "after saving to database: $courseResult" }
         return courseResult
     }
+
+    fun retrieveAllCourses(): List<CourseDTO> {
+
+        val allCourses = courseRepository.findAll()
+            .map {
+                CourseDTO(it.id, it.name, it.category)
+            }
+
+        return allCourses
+    }
 }
